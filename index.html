@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Taking App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #note-input {
+            margin-bottom: 10px;
+        }
+
+        #notes-panel,
+        #removed-notes {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            min-height: 50px;
+        }
+
+        .note {
+            margin-bottom: 5px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: none;
+            cursor: move; /* Make notes draggable */
+        }
+
+        .important {
+            border: 2px solid red;
+        }
+
+        .note-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .note-actions button {
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        .connected-sortable {
+            min-height: 50px;
+        }
+
+        .ui-state-highlight {
+            height: 50px;
+            border: 2px dashed #ccc;
+            margin-bottom: 5px;
+        }
+    </style>
+    <!-- Include jQuery and jQuery UI libraries -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+</head>
+<body>
+
+    <div>
+        <h2>Note Taking App</h2>
+        <div>
+            <input type="text" id="note-input" placeholder="Enter your note">
+            <button id="add-note">Add Note</button>
+        </div>
+        <div>
+            <h3>Notes</h3>
+            <div id="notes-panel" class="connected-sortable"></div>
+        </div>
+        <div>
+            <h3>Removed Notes</h3>
+            <div id="removed-notes" class="connected-sortable"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Add note
+            $('#add-note').on('click', function () {
+                var noteText = $('#note-input').val();
+                if (noteText.trim() !== '') {
+                    addNoteToPanel(noteText);
+                    $('#note-input').val('');
+                }
+            });
+
+            // Remove note
+            $('#notes-panel').on('click', '.remove-note', function () {
+                var note = $(this).closest('.note');
+                var removedText = note.find('.note-text').text();
+                moveNoteToRemovedPanel(note, removedText);
+            });
+
+            // Restore note
+            $('#removed-notes').on('click', '.restore-note', function () {
+                var note = $(this).closest('.note');
+                var restoredText = note.find('.note-text').text();
+                restoreNoteToPanel(note, restoredText);
+            });
+
+            // Toggle importance
+            $('#notes-panel').on('click', '.toggle-important', function () {
+                var note = $(this).closest('.note');
+                note.toggleClass('important');
+            });
+
+            // Make notes draggable and sortable
+            $('#notes-panel, #removed-notes').sortable({
+                connectWith: '.connected-sortable',
+                placeholder: 'ui-state-highlight',
+                start: function (e, ui) {
+                    ui.item.data('start', ui.item.index());
+                },
+                update: function (e, ui) {
+                    var start = ui.item.data('start'),
+                        end = ui.item.index();
+
+                    // If moved within the same list
+                    if (ui.sender === null) {
+                        // Update the order of notes within the same list
+                        // This is just a placeholder; you may need to adjust your data structure
+                        console.log('Moved within the same list. Update order from ' + start + ' to ' + end);
+                    } else {
+                        // Moved between lists (notes-panel and removed-notes)
+                        // This is just a placeholder; you may need to adjust your data structure
+                        console.log('Moved between lists. Moved from ' + ui.sender.attr('id') + ' to ' + this.id);
+                    }
+                }
+            }).disableSelection();
+
+            function addNoteToPanel(text) {
+                var note = $('<div class="note"><span class="note-text">' + text + '</span><div class="note-actions"><button class="remove-note">Remove</button><button class="toggle-important">Toggle Importance</button></div></div>');
+                note.hide().appendTo('#notes-panel').slideDown();
+            }
+
+            function moveNoteToRemovedPanel(note, removedText) {
+                note.slideUp(function () {
+                    note.remove();
+                    addRemovedNoteToPanel(removedText);
+                });
+            }
+
+            function addRemovedNoteToPanel(text) {
+                var removedNote = $('<div class="note"><span class="note-text">' + text + '</span><div class="note-actions"><button class="restore-note">Restore</button></div></div>');
+                removedNote.hide().appendTo('#removed-notes').slideDown();
+            }
+
+            function restoreNoteToPanel(note, restoredText) {
+                note.slideUp(function () {
+                    note.remove();
+                    addNoteToPanel(restoredText);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
